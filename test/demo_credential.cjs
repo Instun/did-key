@@ -1,4 +1,4 @@
-{
+module.exports = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1",
         "https://instun.com/custom-context"
@@ -14,4 +14,4 @@
         },
         "cat_name": "tom"
     }
-}
+};

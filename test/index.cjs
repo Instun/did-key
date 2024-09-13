@@ -3,8 +3,8 @@ test.setup();
 
 const dkey = require('..');
 
-const demo_credential = require('./demo_credential.json');
-const demo_context = require('./demo_context.json');
+const demo_credential = require('./demo_credential.cjs');
+const demo_context = require('./demo_context.cjs');
 
 dkey.contexts['https://instun.com/custom-context'] = demo_context;
 

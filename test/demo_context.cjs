@@ -1,4 +1,4 @@
-{
+module.exports = {
     "@context": {
         "@version": 1.1,
         "@protected": true,
@@ -10,4 +10,4 @@
         },
         "cat_name": "https://instun.com/vocab#cat_name"
     }
-}
+};

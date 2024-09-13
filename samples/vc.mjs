@@ -1,6 +1,6 @@
 import * as dkey from '../lib/node.js';
-import demo_credential from '../test/demo_credential.json' with { type: 'json'};
-import demo_context from '../test/demo_context.json' with { type: 'json'};
+import demo_credential from '../test/demo_credential.cjs';
+import demo_context from '../test/demo_context.cjs';
 
 dkey.contexts['https://instun.com/custom-context'] = demo_context;
 
