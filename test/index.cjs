@@ -34,7 +34,7 @@ const sd_types = [
     'P-256', 'Bls12381'
 ];
 
-describe('did-key', () => {
+describe('did-key sync', () => {
     function _test(type) {
         describe(type, () => {
             it('generate', () => {
@@ -316,6 +316,308 @@ describe('did-key', () => {
                     });
 
                     const result = dkey.verifyPresentation_sync({ presentation: verifiablePresentation });
+                    assert.isTrue(result.verified);
+
+                    assert.isTrue(result.credentialResults[0].results[0].verified);
+                    assert.equal(key.id, result.credentialResults[0].results[0].verificationMethod.id);
+
+                    assert.isTrue(result.presentationResult.results[0].verified);
+                    assert.equal(key1.id, result.presentationResult.results[0].verificationMethod.id);
+                });
+            }
+
+            sd_types.forEach(type1 => {
+                types.forEach(type2 => {
+                    _test(type1, type2);
+                });
+            });
+        });
+    });
+});
+
+
+describe('did-key async', () => {
+    function _test(type) {
+        describe(type, () => {
+            it('generate', async () => {
+                const key = await dkey.generate(type);
+
+                assert.property(key, 'id');
+                assert.equal(key.id, key.controller);
+                assert.property(key, 'secretKeyMultibase');
+                assert.property(key, 'publicKeyMultibase');
+            });
+
+            it('issue credential', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                assert.equal(key.id, verifiableCredential.issuer);
+                assert.equal(key.id, verifiableCredential.proof.verificationMethod);
+                assert.equal(verifiableCredential.proof.proofPurpose, "assertionMethod");
+            });
+
+            it('verify credential', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const result = await dkey.verifyCredential({ credential: verifiableCredential });
+                assert.isTrue(result.verified);
+
+                assert.isTrue(result.results[0].verified);
+                assert.equal(key.id, result.results[0].verificationMethod.id);
+            });
+
+            it('faked credential', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                verifiableCredential.credentialSubject.foo = 'foo';
+
+                const result = await dkey.verifyCredential({ credential: verifiableCredential });
+
+                assert.isFalse(result.verified);
+                assert.isFalse(result.results[0].verified);
+            });
+
+            it('issue presentation', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const key1 = await dkey.generate(type);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: key1
+                });
+
+                assert.deepEqual(verifiablePresentation.verifiableCredential, verifiableCredential);
+
+                assert.equal(key1.id, verifiablePresentation.proof.verificationMethod);
+                assert.equal(verifiablePresentation.proof.proofPurpose, "authentication");
+            });
+
+            it('verify presentation', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const key1 = await dkey.generate(type);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: key1
+                });
+
+                const result = await dkey.verifyPresentation({ presentation: verifiablePresentation });
+                assert.isTrue(result.verified);
+
+                assert.isTrue(result.credentialResults[0].results[0].verified);
+                assert.equal(key.id, result.credentialResults[0].results[0].verificationMethod.id);
+
+                assert.isTrue(result.presentationResult.results[0].verified);
+                assert.equal(key1.id, result.presentationResult.results[0].verificationMethod.id);
+            });
+
+            it('faked presentation', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const key1 = await dkey.generate(type);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: key1
+                });
+                verifiablePresentation.foo = 'foo';
+
+                const result = await dkey.verifyPresentation({ presentation: verifiablePresentation });
+
+                assert.isFalse(result.verified);
+
+                assert.isTrue(result.credentialResults[0].results[0].verified);
+                assert.equal(key.id, result.credentialResults[0].results[0].verificationMethod.id);
+
+                assert.isFalse(result.presentationResult.results[0].verified);
+            });
+
+            it('faked credential in presentation', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const key1 = await dkey.generate(type);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: key1
+                });
+                verifiablePresentation.verifiableCredential.foo = 'foo';
+
+                const result = await dkey.verifyPresentation({ presentation: verifiablePresentation });
+
+                assert.isFalse(result.verified);
+                assert.isFalse(result.credentialResults[0].results[0].verified);
+                assert.isFalse(result.presentationResult.results[0].verified);
+            });
+        });
+    }
+
+    types.forEach(_test);
+
+    describe('issue presentation with different type of key', () => {
+        function _test(type1, type2) {
+            it(`presentation(${type2}) with credential(${type1})`, async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type1);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                const key1 = await dkey.generate(type2);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: key1
+                });
+
+                const result = await dkey.verifyPresentation({ presentation: verifiablePresentation });
+                assert.isTrue(result.verified);
+
+                assert.isTrue(result.credentialResults[0].results[0].verified);
+                assert.equal(key.id, result.credentialResults[0].results[0].verificationMethod.id);
+
+                assert.isTrue(result.presentationResult.results[0].verified);
+                assert.equal(key1.id, result.presentationResult.results[0].verificationMethod.id);
+            });
+        }
+
+        types.forEach(type1 => {
+            types.forEach(type2 => {
+                _test(type1, type2);
+            });
+        });
+    });
+
+    describe('Selective Disclosure Verifiable Credential', () => {
+        function _test(type) {
+            describe(type, () => {
+                it('issue credential', async () => {
+                    const _demo_credential = deepCopy(demo_credential);
+
+                    const key = await dkey.generate(type);
+                    const verifiableCredential = await dkey.issueCredential({
+                        credential: _demo_credential,
+                        key,
+                        mandatoryPointers: [
+                            '/issuanceDate',
+                            '/issuer'
+                        ]
+                    });
+
+                    assert.equal(key.id, verifiableCredential.issuer);
+                    assert.equal(key.id, verifiableCredential.proof.verificationMethod);
+                    assert.equal(verifiableCredential.proof.proofPurpose, "assertionMethod");
+
+                    assert.deepEqual(verifiableCredential.credentialSubject, _demo_credential.credentialSubject);
+                });
+
+                it('derive credential', async () => {
+                    const _demo_credential = deepCopy(demo_credential);
+
+                    const key = await dkey.generate(type);
+                    const verifiableCredential = await dkey.issueCredential({
+                        credential: _demo_credential,
+                        key,
+                        mandatoryPointers: [
+                            '/issuanceDate',
+                            '/issuer'
+                        ]
+                    });
+
+                    const derivedCredential = await dkey.deriveCredential({
+                        verifiableCredential: verifiableCredential,
+                        presentationHeader: Buffer.from('asdf'),
+                        selectivePointers: [
+                            '/credentialSubject/dog_name'
+                        ]
+                    });
+
+                    assert.equal(derivedCredential.issuer, verifiableCredential.issuer);
+                    assert.equal(derivedCredential.issuanceDate, verifiableCredential.issuanceDate);
+
+                    assert.deepEqual(verifiableCredential.credentialSubject.doc_name, _demo_credential.credentialSubject.doc_name);
+                    assert.notProperty(derivedCredential.credentialSubject, 'cat_name');
+                });
+
+                it('verify credential', async () => {
+                    const _demo_credential = deepCopy(demo_credential);
+
+                    const key = await dkey.generate(type);
+                    const verifiableCredential = await dkey.issueCredential({
+                        credential: _demo_credential,
+                        key,
+                        mandatoryPointers: [
+                            '/issuanceDate',
+                            '/issuer'
+                        ]
+                    });
+
+                    const derivedCredential = await dkey.deriveCredential({
+                        verifiableCredential: verifiableCredential,
+                        presentationHeader: Buffer.from('asdf'),
+                        selectivePointers: [
+                            '/credentialSubject/dog_name'
+                        ]
+                    });
+
+                    const result = await dkey.verifyCredential({ credential: derivedCredential });
+                    assert.isTrue(result.verified);
+
+                    assert.isTrue(result.results[0].verified);
+                    assert.equal(key.id, result.results[0].verificationMethod.id);
+                });
+            });
+        }
+
+        sd_types.forEach(_test);
+
+        describe('issue presentation with different type of key', () => {
+            function _test(type1, type2) {
+                it(`presentation(${type2}) with credential(${type1})`, async () => {
+                    const _demo_credential = deepCopy(demo_credential);
+
+                    const key = await dkey.generate(type1);
+                    const verifiableCredential = await dkey.issueCredential({
+                        credential: _demo_credential,
+                        key,
+                        mandatoryPointers: [
+                            '/issuanceDate',
+                            '/issuer'
+                        ]
+                    });
+
+                    const derivedCredential = await dkey.deriveCredential({
+                        verifiableCredential: verifiableCredential,
+                        presentationHeader: Buffer.from('asdf'),
+                        selectivePointers: [
+                            '/credentialSubject/dog_name'
+                        ]
+                    });
+
+                    const key1 = await dkey.generate(type2);
+                    const verifiablePresentation = await dkey.signPresentation({
+                        credential: derivedCredential,
+                        key: key1
+                    });
+
+                    const result = await dkey.verifyPresentation({ presentation: verifiablePresentation });
                     assert.isTrue(result.verified);
 
                     assert.isTrue(result.credentialResults[0].results[0].verified);
