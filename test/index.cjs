@@ -27,7 +27,7 @@ function deepCopy(obj) {
 }
 
 const types = [
-    'P-256', 'P-384', 'P-521', 'Ed25519'
+    'P-256', 'P-384', 'P-521', 'Ed25519', 'SM2'
 ];
 
 const sd_types = [
@@ -165,6 +165,94 @@ describe('did-key sync', () => {
                 assert.isFalse(result.verified);
                 assert.isFalse(result.credentialResults[0].results[0].verified);
                 assert.isFalse(result.presentationResult.results[0].verified);
+            });
+
+            it('sign and verify data', () => {
+                const key = dkey.generate_sync(type);
+                const data = Buffer.from('hello');
+
+                const signature = dkey.sign_sync({
+                    data,
+                    key
+                });
+
+                const result = dkey.verify_sync({
+                    data,
+                    signature,
+                    key
+                });
+
+                assert.isTrue(result);
+
+                // Test with wrong data
+                const wrongResult = dkey.verify_sync({
+                    data: Buffer.from('wrong data'),
+                    signature,
+                    key
+                });
+
+                assert.isFalse(wrongResult);
+            });
+
+            it('verify with did id', () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = dkey.generate_sync(type);
+                const verifiableCredential = dkey.issueCredential_sync({ credential: _demo_credential, key });
+
+                // Verify using DID ID instead of full key
+                const result = dkey.verifyCredential_sync({ 
+                    credential: verifiableCredential,
+                    verificationMethod: key.id 
+                });
+                assert.isTrue(result.verified);
+            });
+
+            it('raw signature verify with did id', () => {
+                const key = dkey.generate_sync(type);
+                const data = Buffer.from('hello');
+                
+                const signature = dkey.sign_sync({
+                    data,
+                    key
+                });
+
+                // Verify using DID ID
+                const result = dkey.verify_sync({
+                    data,
+                    signature,
+                    key: key.id
+                });
+                assert.isTrue(result);
+
+                // Should fail with wrong data
+                const wrongResult = dkey.verify_sync({
+                    data: Buffer.from('wrong data'),
+                    signature,
+                    key: key.id
+                });
+                assert.isFalse(wrongResult);
+            });
+
+            it('presentation verify with did id', () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const issuerKey = dkey.generate_sync(type);
+                const verifiableCredential = dkey.issueCredential_sync({ credential: _demo_credential, key: issuerKey });
+
+                const holderKey = dkey.generate_sync(type);
+                const verifiablePresentation = dkey.signPresentation_sync({
+                    credential: verifiableCredential,
+                    key: holderKey
+                });
+
+                // Verify presentation using DID IDs
+                const result = dkey.verifyPresentation_sync({ 
+                    presentation: verifiablePresentation,
+                    presentationVerificationMethod: holderKey.id,
+                    credentialVerificationMethod: issuerKey.id
+                });
+                assert.isTrue(result.verified);
             });
         });
     }
@@ -467,6 +555,94 @@ describe('did-key async', () => {
                 assert.isFalse(result.verified);
                 assert.isFalse(result.credentialResults[0].results[0].verified);
                 assert.isFalse(result.presentationResult.results[0].verified);
+            });
+
+            it('sign and verify data', async () => {
+                const key = await dkey.generate(type);
+                const data = Buffer.from('hello');
+
+                const signature = await dkey.sign({
+                    data,
+                    key
+                });
+
+                const result = await dkey.verify({
+                    data,
+                    signature,
+                    key
+                });
+
+                assert.isTrue(result);
+
+                // Test with wrong data
+                const wrongResult = await dkey.verify({
+                    data: Buffer.from('wrong data'),
+                    signature,
+                    key
+                });
+
+                assert.isFalse(wrongResult);
+            });
+
+            it('verify with did id', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const key = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key });
+
+                // Verify using DID ID instead of full key
+                const result = await dkey.verifyCredential({ 
+                    credential: verifiableCredential,
+                    verificationMethod: key.id 
+                });
+                assert.isTrue(result.verified);
+            });
+
+            it('raw signature verify with did id', async () => {
+                const key = await dkey.generate(type);
+                const data = Buffer.from('hello');
+                
+                const signature = await dkey.sign({
+                    data,
+                    key
+                });
+
+                // Verify using DID ID
+                const result = await dkey.verify({
+                    data,
+                    signature,
+                    key: key.id
+                });
+                assert.isTrue(result);
+
+                // Should fail with wrong data
+                const wrongResult = await dkey.verify({
+                    data: Buffer.from('wrong data'),
+                    signature,
+                    key: key.id
+                });
+                assert.isFalse(wrongResult);
+            });
+
+            it('presentation verify with did id', async () => {
+                const _demo_credential = deepCopy(demo_credential);
+
+                const issuerKey = await dkey.generate(type);
+                const verifiableCredential = await dkey.issueCredential({ credential: _demo_credential, key: issuerKey });
+
+                const holderKey = await dkey.generate(type);
+                const verifiablePresentation = await dkey.signPresentation({
+                    credential: verifiableCredential,
+                    key: holderKey
+                });
+
+                // Verify presentation using DID IDs
+                const result = await dkey.verifyPresentation({ 
+                    presentation: verifiablePresentation,
+                    presentationVerificationMethod: holderKey.id,
+                    credentialVerificationMethod: issuerKey.id
+                });
+                assert.isTrue(result.verified);
             });
         });
     }
