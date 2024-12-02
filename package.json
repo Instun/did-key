@@ -1,6 +1,6 @@
 {
   "name": "@instun/did-key",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A module for generating DID keys and issuing Verifiable Credentials (VC), which can be utilized in fibjs, Node.js, and browsers.",
   "repository": "https://github.com/Instun/did-key",
   "keywords": [
