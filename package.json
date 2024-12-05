@@ -1,6 +1,6 @@
 {
   "name": "@instun/did-key",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A module for generating DID keys and issuing Verifiable Credentials (VC), which can be utilized in fibjs, Node.js, and browsers.",
   "repository": "https://github.com/Instun/did-key",
   "keywords": [
@@ -30,6 +30,6 @@
     "@digitalbazaar/eddsa-2022-cryptosuite": "^1.0.0",
     "@digitalbazaar/bls12-381-multikey": "^2.0.0",
     "@digitalbazaar/bbs-2023-cryptosuite": "^2.0.1",
-    "@instun/sm2-multikey": "^1.0.0"
+    "@instun/sm2-multikey": "^2.0.0"
   }
 }
