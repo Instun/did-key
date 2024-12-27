@@ -301,6 +301,7 @@ if (process.versions.fibjs)
                         const verifiableCredential = dkey.issueCredential_sync({
                             credential: _demo_credential,
                             key,
+                            useSelectiveDisclosure: true,
                             mandatoryPointers: [
                                 '/issuanceDate',
                                 '/issuer'
@@ -321,6 +322,7 @@ if (process.versions.fibjs)
                         const verifiableCredential = dkey.issueCredential_sync({
                             credential: _demo_credential,
                             key,
+                            useSelectiveDisclosure: true,
                             mandatoryPointers: [
                                 '/issuanceDate',
                                 '/issuer'
@@ -349,6 +351,7 @@ if (process.versions.fibjs)
                         const verifiableCredential = dkey.issueCredential_sync({
                             credential: _demo_credential,
                             key,
+                            useSelectiveDisclosure: true,
                             mandatoryPointers: [
                                 '/issuanceDate',
                                 '/issuer'
@@ -383,6 +386,7 @@ if (process.versions.fibjs)
                         const verifiableCredential = dkey.issueCredential_sync({
                             credential: _demo_credential,
                             key,
+                            useSelectiveDisclosure: true,
                             mandatoryPointers: [
                                 '/issuanceDate',
                                 '/issuer'
@@ -691,6 +695,7 @@ describe('did-key async', () => {
                     const verifiableCredential = await dkey.issueCredential({
                         credential: _demo_credential,
                         key,
+                        useSelectiveDisclosure: true,
                         mandatoryPointers: [
                             '/issuanceDate',
                             '/issuer'
@@ -711,6 +716,7 @@ describe('did-key async', () => {
                     const verifiableCredential = await dkey.issueCredential({
                         credential: _demo_credential,
                         key,
+                        useSelectiveDisclosure: true,
                         mandatoryPointers: [
                             '/issuanceDate',
                             '/issuer'
@@ -739,6 +745,7 @@ describe('did-key async', () => {
                     const verifiableCredential = await dkey.issueCredential({
                         credential: _demo_credential,
                         key,
+                        useSelectiveDisclosure: true,
                         mandatoryPointers: [
                             '/issuanceDate',
                             '/issuer'
@@ -773,6 +780,7 @@ describe('did-key async', () => {
                     const verifiableCredential = await dkey.issueCredential({
                         credential: _demo_credential,
                         key,
+                        useSelectiveDisclosure: true,
                         mandatoryPointers: [
                             '/issuanceDate',
                             '/issuer'

@@ -178,6 +178,7 @@ const resultWithDID = await dkey.verifyCredential({
 const verifiableCredential = await dkey.issueCredential({
   credential,
   key: issuerKey,
+  useSelectiveDisclosure: true,
   mandatoryPointers: [
     '/issuanceDate',
     '/issuer'
@@ -396,6 +397,7 @@ Issue a verifiable credential.
   - `options` {object}
     - `credential` {object} - Credential to be issued
     - `key` {object} - Issuer's key pair
+    - `useSelectiveDisclosure` {boolean} - Optional. Enable selective disclosure support
     - `mandatoryPointers` {string[]} - Optional. Paths that cannot be omitted in selective disclosure
 - **Returns**
   - `Promise<object>` - Verifiable credential with proof
