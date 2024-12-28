@@ -30,7 +30,7 @@ const types = [
 ];
 
 const sd_types = [
-    'P-256', 'Bls12381'
+    'P-256', 'Bls12381', 'SM2'
 ];
 
 if (process.versions.fibjs)
